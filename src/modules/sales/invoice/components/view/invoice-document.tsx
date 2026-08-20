@@ -36,6 +36,7 @@ export default function InvoiceDocument({
   subtotalAmount,
   taxAmountTotal,
 }: InvoiceDocumentProps) {
+  
   const currency = inv.currency ?? "INR";
 
   return (
