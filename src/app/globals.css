@@ -1,0 +1,85 @@
+@import "tailwindcss";
+@import "react-day-picker/dist/style.css";
+
+/* Design Tokens */
+:root {
+  --primary: #3a86ff;
+  --secondary: #ebf2ff;
+
+  --background: #F8FAFC;
+  --surface: #FFFFFF;
+
+  --text: #111827;
+  --muted: #6B7280;
+
+  --font-heading: "Saira", sans-serif;
+  --font-body: "Saira", sans-serif;
+}
+
+/* Tailwind Theme */
+@theme {
+  --color-primary: var(--primary);
+  --color-secondary: var(--secondary);
+
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+
+  --font-heading: var(--font-heading);
+  --font-body: var(--font-body);
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+body {
+  background: var(--background);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+* {
+  border-color: #eee;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-heading);
+}
+
+
+/* -------------------------------------------------------------------------- */
+/* Custom Scrollbar */
+/* -------------------------------------------------------------------------- */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db transparent;
+}

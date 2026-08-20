@@ -1,0 +1,82 @@
+import api from "@/services/api";
+import type { InvoiceItem } from "../types/invoice-item";
+
+const INVOICE_ITEM_ENDPOINTS = {
+  GET_ITEMS: "/invoice-items",
+} as const;
+
+export const invoiceItemApi = {
+  // ---------------------------------------------------------
+  // Get Invoice Items
+  // ---------------------------------------------------------
+
+  getItems(search?: string) {
+    // -------------------------------------------------------
+    // Real API
+    // -------------------------------------------------------
+
+    // return api.get<InvoiceItem[]>(
+    //   INVOICE_ITEM_ENDPOINTS.GET_ITEMS,
+    //   {
+    //     params: search ? { search } : undefined,
+    //   }
+    // );
+
+    // -------------------------------------------------------
+    // Dummy Response - Remove when API is ready
+    // -------------------------------------------------------
+
+    const items: InvoiceItem[] = [
+      {
+        id: "1",
+        name: "Daikin 1.5 Ton Inverter Split Air Conditioner",
+        type: "product",
+        unit: "PCS",
+        hsnSacCode: "84151010",
+        salePrice: 42500,
+        gstRate: 18,
+        description:
+          "Energy-efficient 5-star inverter split AC with copper condenser.",
+      },
+      {
+        id: "2",
+        name: "AC Installation Service",
+        type: "service",
+        unit: "JOB",
+        hsnSacCode: "998716",
+        salePrice: 2500,
+        gstRate: 18,
+        description:
+          "Installation of indoor and outdoor units, piping, wiring, testing.",
+      },
+      {
+        id: "3",
+        name: "Copper Pipe 1/4 inch",
+        type: "product",
+        unit: "MTR",
+        hsnSacCode: "74111000",
+        salePrice: 180,
+        gstRate: 18,
+      },
+      {
+        id: "4",
+        name: "Stabilizer 4 KVA",
+        type: "product",
+        unit: "PCS",
+        hsnSacCode: "85044090",
+        salePrice: 3200,
+        gstRate: 18,
+      },
+    ];
+
+    const filteredItems = search
+      ? items.filter((item) =>
+          item.name.toLowerCase().includes(search.toLowerCase())
+        )
+      : items;
+
+    return Promise.resolve({
+      data: filteredItems,
+    });
+  },
+};
