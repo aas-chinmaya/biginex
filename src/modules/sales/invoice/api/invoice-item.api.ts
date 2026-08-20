@@ -1,3 +1,5 @@
+
+
 import api from "@/services/api";
 import type { InvoiceItem } from "../types/invoice-item";
 
@@ -6,31 +8,13 @@ const INVOICE_ITEM_ENDPOINTS = {
 } as const;
 
 export const invoiceItemApi = {
-  // ---------------------------------------------------------
-  // Get Invoice Items
-  // ---------------------------------------------------------
-
   getItems(search?: string) {
-    // -------------------------------------------------------
-    // Real API
-    // -------------------------------------------------------
-
-    // return api.get<InvoiceItem[]>(
-    //   INVOICE_ITEM_ENDPOINTS.GET_ITEMS,
-    //   {
-    //     params: search ? { search } : undefined,
-    //   }
-    // );
-
-    // -------------------------------------------------------
-    // Dummy Response - Remove when API is ready
-    // -------------------------------------------------------
-
     const items: InvoiceItem[] = [
       {
         id: "1",
         name: "Daikin 1.5 Ton Inverter Split Air Conditioner",
-        type: "product",
+        itemCode: "AC-DAIKIN-1.5T",
+        classification: "GOODS",
         unit: "PCS",
         hsnSacCode: "84151010",
         salePrice: 42500,
@@ -41,7 +25,8 @@ export const invoiceItemApi = {
       {
         id: "2",
         name: "AC Installation Service",
-        type: "service",
+        itemCode: "SERVICE-AC-INSTALL",
+        classification: "SERVICES",
         unit: "JOB",
         hsnSacCode: "998716",
         salePrice: 2500,
@@ -52,7 +37,8 @@ export const invoiceItemApi = {
       {
         id: "3",
         name: "Copper Pipe 1/4 inch",
-        type: "product",
+        itemCode: "COPPER-PIPE-14",
+        classification: "GOODS",
         unit: "MTR",
         hsnSacCode: "74111000",
         salePrice: 180,
@@ -61,7 +47,8 @@ export const invoiceItemApi = {
       {
         id: "4",
         name: "Stabilizer 4 KVA",
-        type: "product",
+        itemCode: "STAB-4KVA",
+        classification: "GOODS",
         unit: "PCS",
         hsnSacCode: "85044090",
         salePrice: 3200,
@@ -71,7 +58,7 @@ export const invoiceItemApi = {
 
     const filteredItems = search
       ? items.filter((item) =>
-          item.name.toLowerCase().includes(search.toLowerCase())
+          item.name.toLowerCase().includes(search.toLowerCase()),
         )
       : items;
 

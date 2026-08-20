@@ -79,7 +79,7 @@ function drawInvoicePage(doc: jsPDF, options: GeneratePdfOptions, copy: "ORIGINA
     subtotalAmount,
     taxAmountTotal,
   } = options;
-
+console.log(inv, "inv");
   const palette = PALETTES[options.theme ?? "mono"];
   const pageWidth = doc.internal.pageSize.getWidth();
   const pageHeight = doc.internal.pageSize.getHeight();

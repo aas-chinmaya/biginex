@@ -27,16 +27,24 @@ const newLineItem = (): InvoiceItemFormValues => ({
   productName: "",
   unit: "NOS",
   hsnSacCode: "NA",
+
+  classification: "GOODS",
+
   quantity: 1,
   rate: 0,
+
   discountType: "percentage",
   discountValue: 0,
+
   taxableAmount: 0,
+
   cgst: 0,
   sgst: 0,
   igst: 0,
   cess: 0,
+
   grandTotal: 0,
+
   description: "",
 });
 
@@ -126,24 +134,34 @@ export default function InvoiceItemsCard() {
     );
   };
 
-  const selectProduct = (index: number, productId: string) => {
-    const product = list.find((entry: { id: string }) => entry.id === productId);
-    if (!product) return;
+const selectProduct = (index: number, productId: string) => {
+  const product = list.find((entry) => entry.id === productId);
 
-    const gstRate = number((product as any).gstRate) || 18;
-    const rate = number((product as any).salePrice);
+  if (!product) return;
 
-    updateLine(index, {
-      productId: product.id,
-      productName: (product as any).name ?? "",
-      unit: (product as any).unit ?? "NOS",
-      hsnSacCode: (product as any).hsnSacCode ?? "NA",
-      rate,
-      igst: Number(((rate * 1 * gstRate) / 100).toFixed(2)),
-      discountValue: 0,
-      discountType: "percentage",
-    });
-  };
+  const gstRate = number(product.gstRate) || 18;
+  const rate = number(product.salePrice);
+
+  updateLine(index, {
+    productId: product.id,
+    productName: product.name ?? "",
+    unit: product.unit ?? "NOS",
+    hsnSacCode: product.hsnSacCode ?? "NA",
+  itemCode: product.itemCode ?? product.id,
+
+    classification:
+      product.classification === "SERVICES"
+        ? "SERVICES"
+        : "GOODS",
+
+    rate,
+
+    igst: Number(((rate * gstRate) / 100).toFixed(2)),
+
+    discountValue: 0,
+    discountType: "percentage",
+  });
+};
 
   const removeLine = (index: number) => {
     if (fields.length === 1) {
@@ -340,6 +358,7 @@ export default function InvoiceItemsCard() {
 type Product = {
   id: string;
   name?: string;
+  classification?: "GOODS" | "SERVICES";
   salePrice?: number;
   unit?: string;
   hsnSacCode?: string;

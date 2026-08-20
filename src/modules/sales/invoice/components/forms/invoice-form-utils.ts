@@ -207,9 +207,15 @@ export function toInvoicePayload(
       itemId: text(item.productId) || undefined,
       itemName: text(item.productName),
       product: text(item.productName),
-      itemCode: null,
-      unit: text(item.unit) || "NOS",
+itemCode: text(item.itemCode) || text(item.productId) || "NA",      unit: text(item.unit) || "NOS",
       hsnSacCode: text(item.hsnSacCode) || "NA",
+      
+     classification:
+    String(item.classification ?? "GOODS").toUpperCase() === "SERVICES"
+      ? "SERVICES"
+      : "GOODS",
+
+
       quantity,
       unitPrice: rate,
       sellingPrice: rate,
@@ -413,33 +419,50 @@ export function toInvoiceFormValues(
     }
   }
 
-  const rawItems = Array.isArray(invoice.items) ? invoice.items : [];
+const rawItems = Array.isArray(invoice.items) ? invoice.items : [];
 
-  values.items = rawItems.map((raw) => {
-    const item = raw as Record<string, unknown>;
+values.items = rawItems.map((raw) => {
+  const item = raw as Record<string, unknown>;
 
-    return {
-      id: text(item.id) || undefined,
-      productId: text(item.productId ?? item.itemId),
-      productName: text(item.itemName ?? item.product),
-      unit: text(item.unit) || "NOS",
-      hsnSacCode: text(item.hsnSacCode) || "NA",
-      quantity: numberValue(item.quantity),
-      rate: numberValue(item.unitPrice ?? item.sellingPrice),
-      discountType:
-        String(item.discountType ?? "percentage").toLowerCase() === "fixed"
-          ? "fixed"
-          : "percentage",
-      discountValue: numberValue(item.discountValue),
-      taxableAmount: numberValue(item.taxableAmount),
-      cgst: numberValue(item.cgstAmount ?? item.cgst),
-      sgst: numberValue(item.sgstAmount ?? item.sgst),
-      igst: numberValue(item.igstAmount ?? item.igst),
-      cess: numberValue(item.cessAmount ?? item.cess),
-      grandTotal: numberValue(item.lineTotal ?? item.grandTotal ?? item.totalAmount),
-      description: text(item.description) || undefined,
-    } satisfies InvoiceItemFormValues;
-  });
+  return {
+    id: text(item.id) || undefined,
 
-  return values;
+    productId: text(item.productId ?? item.itemId),
+    productName: text(item.itemName ?? item.product),
+
+    unit: text(item.unit) || "NOS",
+    hsnSacCode: text(item.hsnSacCode) || "NA",
+
+     classification:
+      String(item.classification ?? "GOODS").toUpperCase() === "SERVICES"
+        ? "SERVICES"
+        : "GOODS",
+
+    quantity: numberValue(item.quantity),
+    rate: numberValue(item.unitPrice ?? item.sellingPrice),
+
+    discountType:
+      String(item.discountType ?? "percentage").toLowerCase() === "fixed"
+        ? "fixed"
+        : "percentage",
+
+    discountValue: numberValue(item.discountValue),
+
+    taxableAmount: numberValue(item.taxableAmount),
+
+    cgst: numberValue(item.cgstAmount ?? item.cgst),
+    sgst: numberValue(item.sgstAmount ?? item.sgst),
+    igst: numberValue(item.igstAmount ?? item.igst),
+    cess: numberValue(item.cessAmount ?? item.cess),
+
+    grandTotal: numberValue(
+      item.lineTotal ?? item.grandTotal ?? item.totalAmount,
+    ),
+
+    description: text(item.description) || undefined,
+  } satisfies InvoiceItemFormValues;
+});
+
+return values;
 }
+ 

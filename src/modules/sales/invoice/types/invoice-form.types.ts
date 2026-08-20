@@ -3,6 +3,7 @@
 
 import type {
   DiscountType,
+  
   InvoiceStatus,
   InvoiceType,
   PaymentStatus,
@@ -17,10 +18,11 @@ export interface InvoiceItemFormValues {
 
   productId: string;
   productName: string;
+  itemCode: string;
 
   unit: string;
   hsnSacCode: string;
-
+classification: "GOODS" | "SERVICES";
   quantity: number;
   rate: number;
 
