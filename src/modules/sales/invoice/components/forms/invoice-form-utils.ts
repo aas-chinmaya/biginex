@@ -1,139 +1,232 @@
-
-
 import { DEFAULT_VALUES } from "../../hooks/use-invoice-form";
+
 import type {
   InvoiceFormValues,
   InvoiceItemFormValues,
 } from "../../types/invoice-form.types";
 
 // ==========================================================
-// GST state code helpers
+// GST STATE CODE MAP
 // ==========================================================
 
 export const STATE_CODE_MAP: Record<string, string> = {
   "andhra pradesh": "37",
   "arunachal pradesh": "12",
-  "assam": "18",
-  "bihar": "10",
-  "chhattisgarh": "22",
-  "goa": "30",
-  "gujarat": "24",
-  "haryana": "06",
+  assam: "18",
+  bihar: "10",
+  chhattisgarh: "22",
+  goa: "30",
+  gujarat: "24",
+  haryana: "06",
   "himachal pradesh": "02",
-  "jharkhand": "20",
-  "karnataka": "29",
-  "kerala": "32",
+  jharkhand: "20",
+  karnataka: "29",
+  kerala: "32",
   "madhya pradesh": "23",
-  "maharashtra": "27",
-  "manipur": "14",
-  "meghalaya": "17",
-  "mizoram": "15",
-  "nagaland": "13",
-  "odisha": "21",
-  "punjab": "03",
-  "rajasthan": "08",
-  "sikkim": "11",
+  maharashtra: "27",
+  manipur: "14",
+  meghalaya: "17",
+  mizoram: "15",
+  nagaland: "13",
+  odisha: "21",
+  punjab: "03",
+  rajasthan: "08",
+  sikkim: "11",
   "tamil nadu": "33",
-  "telangana": "36",
-  "tripura": "16",
+  telangana: "36",
+  tripura: "16",
   "uttar pradesh": "09",
-  "uttarakhand": "05",
+  uttarakhand: "05",
   "west bengal": "19",
+
   "andaman and nicobar islands": "35",
-  "chandigarh": "04",
+  chandigarh: "04",
   "dadra and nagar haveli and daman and diu": "26",
-  "delhi": "07",
+  delhi: "07",
   "jammu and kashmir": "01",
-  "ladakh": "38",
-  "lakshadweep": "31",
-  "puducherry": "34",
+  ladakh: "38",
+  lakshadweep: "31",
+  puducherry: "34",
 };
+
+// ==========================================================
+// STATE CODE
+// ==========================================================
 
 export function getStateCode(
   state?: string | null,
   fallbackCode?: string | null,
 ): string {
-  if (fallbackCode && fallbackCode.trim()) return fallbackCode.trim();
-  if (!state) return "";
-  return STATE_CODE_MAP[state.trim().toLowerCase()] ?? "";
+  const fallback = String(
+    fallbackCode ?? "",
+  ).trim();
+
+  if (fallback) {
+    return fallback;
+  }
+
+  const normalizedState = String(
+    state ?? "",
+  )
+    .trim()
+    .toLowerCase();
+
+  if (!normalizedState) {
+    return "";
+  }
+
+  return STATE_CODE_MAP[
+    normalizedState
+  ] ?? "";
 }
 
 // ==========================================================
-// Helpers
+// HELPERS
 // ==========================================================
 
-const text = (value: unknown): string => String(value ?? "").trim();
-
-const numberValue = (value: unknown): number => {
-  const n = Number(value);
-  return Number.isFinite(n) ? n : 0;
+const text = (
+  value: unknown,
+): string => {
+  return String(
+    value ?? "",
+  ).trim();
 };
 
-const round = (value: number): number => Number(value.toFixed(2));
+const numberValue = (
+  value: unknown,
+): number => {
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : 0;
+};
+
+const round = (
+  value: number,
+): number => {
+  return Number(
+    value.toFixed(2),
+  );
+};
+
+const optionalText = (
+  value: unknown,
+): string | undefined => {
+  const result = text(value);
+
+  return result || undefined;
+};
 
 // ==========================================================
-// Lightweight check
+// REQUIRED CUSTOMER / ITEMS
 // ==========================================================
 
 export function invoiceHasRequiredCustomerAndItems(
   values: InvoiceFormValues,
 ): boolean {
-  return Boolean(
-    (text(values.customerId) || text(values.buyerName)) &&
-      text(values.invoiceDate) &&
-      values.items?.some(
-        (item) => text(item.productId) && numberValue(item.quantity) > 0,
+  const hasBuyer =
+    Boolean(text(values.customerId)) ||
+    Boolean(text(values.buyerName)) ||
+    Boolean(
+      text(
+        values.buyerCompanyName,
       ),
-  );
+    );
+
+  return hasBuyer;
 }
 
 // ==========================================================
-// Required field errors
+// REQUIRED FIELD ERRORS
+// ==========================================================
+//
+// Invoice date = OPTIONAL
+// Items = OPTIONAL
+//
+// Required:
+// - Buyer
+// - Place of supply
+//
+// Manual buyer:
+// - Billing address
+// - Billing city
+// - Billing state
+// - Billing pincode
 // ==========================================================
 
 export function getRequiredFieldErrors(
   values: InvoiceFormValues,
 ): Record<string, string> {
-  const errors: Record<string, string> = {};
+  const errors: Record<
+    string,
+    string
+  > = {};
 
-  if (!text(values.customerId) && !text(values.buyerName)) {
-    errors.customerId = "Buyer is required";
-    errors.buyerName = "Buyer name is required";
-  }
+  // ========================================================
+  // BUYER
+  // ========================================================
 
-  if (!text(values.invoiceDate)) {
-    errors.invoiceDate = "Invoice date is required";
-  }
-
-  if (!Array.isArray(values.items) || values.items.length === 0) {
-    errors.items = "At least one invoice item is required";
-  } else {
-    const invalidIndex = values.items.findIndex(
-      (item) => !text(item.productId) || numberValue(item.quantity) <= 0,
+  const hasCustomer =
+    Boolean(text(values.customerId)) ||
+    Boolean(text(values.buyerName)) ||
+    Boolean(
+      text(
+        values.buyerCompanyName,
+      ),
     );
-    if (invalidIndex >= 0) {
-      errors[`items.${invalidIndex}.productId`] =
-        "Item and quantity are required";
-    }
+
+  if (!hasCustomer) {
+    errors.buyerName =
+      "Buyer is required";
   }
 
-  if (!text(values.placeOfSupply)) {
-    errors.placeOfSupply = "Place of supply is required";
+  // ========================================================
+  // PLACE OF SUPPLY
+  // ========================================================
+
+  if (
+    !text(values.placeOfSupply)
+  ) {
+    errors.placeOfSupply =
+      "Place of supply is required";
   }
 
-  // Only enforce billing address when no customer is selected
-  if (!text(values.customerId)) {
-    if (!text(values.billingAddressLine1)) {
-      errors.billingAddressLine1 = "Billing address is required";
+  // ========================================================
+  // MANUAL CUSTOMER BILLING
+  // ========================================================
+
+  if (
+    !text(values.customerId)
+  ) {
+    if (
+      !text(
+        values.billingAddressLine1,
+      )
+    ) {
+      errors.billingAddressLine1 =
+        "Billing address is required";
     }
-    if (!text(values.billingCity)) {
-      errors.billingCity = "Billing city is required";
+
+    if (
+      !text(values.billingCity)
+    ) {
+      errors.billingCity =
+        "Billing city is required";
     }
-    if (!text(values.billingState)) {
-      errors.billingState = "Billing state is required";
+
+    if (
+      !text(values.billingState)
+    ) {
+      errors.billingState =
+        "Billing state is required";
     }
-    if (!text(values.billingPincode)) {
-      errors.billingPincode = "Billing pincode is required";
+
+    if (
+      !text(values.billingPincode)
+    ) {
+      errors.billingPincode =
+        "Billing pincode is required";
     }
   }
 
@@ -141,328 +234,1130 @@ export function getRequiredFieldErrors(
 }
 
 // ==========================================================
-// Form → API payload
+// FORM → API PAYLOAD
 // ==========================================================
 
 export function toInvoicePayload(
   values: InvoiceFormValues,
 ): Record<string, unknown> {
-  const sellerStateCode = text(values.sellerStateCode);
+  // ========================================================
+  // STATE CODES
+  // ========================================================
+
+  const sellerStateCode =
+    text(values.sellerStateCode) ||
+    getStateCode(
+      values.sellerState,
+    );
 
   const billingStateCode =
     text(values.billingStateCode) ||
-    getStateCode(values.billingState) ||
-    getStateCode(values.placeOfSupply);
+    getStateCode(
+      values.billingState,
+    ) ||
+    getStateCode(
+      values.placeOfSupply,
+    );
 
   const placeOfSupplyCode =
-    text(values.placeOfSupplyCode) ||
-    billingStateCode ||
-    getStateCode(values.placeOfSupply);
+    text(
+      values.placeOfSupplyCode,
+    ) ||
+    getStateCode(
+      values.placeOfSupply,
+    ) ||
+    billingStateCode;
 
-  const isIntraStateSupply = Boolean(
-    sellerStateCode &&
-      placeOfSupplyCode &&
-      sellerStateCode === placeOfSupplyCode,
-  );
+  // ========================================================
+  // GST TYPE
+  // ========================================================
 
-  const items = (values.items ?? []).map((item, index) => {
-    const quantity = numberValue(item.quantity);
-    const rate = numberValue(item.rate);
-    const subtotal = quantity * rate;
-    const discountValue = numberValue(item.discountValue);
+  const isIntraStateSupply =
+    Boolean(sellerStateCode) &&
+    Boolean(placeOfSupplyCode) &&
+    sellerStateCode ===
+      placeOfSupplyCode;
 
-    const discountAmount =
-      item.discountType === "fixed"
-        ? Math.min(discountValue, subtotal)
-        : Math.min((subtotal * discountValue) / 100, subtotal);
+  // ========================================================
+  // ITEMS
+  // ========================================================
 
-    const taxableAmount = round(subtotal - discountAmount);
+  const items = (
+    values.items ?? []
+  ).map(
+    (
+      item: InvoiceItemFormValues,
+      index,
+    ) => {
+      // ====================================================
+      // BASIC VALUES
+      // ====================================================
 
-    let cgst = round(numberValue(item.cgst));
-    let sgst = round(numberValue(item.sgst));
-    let igst = round(numberValue(item.igst));
-    const cess = round(numberValue(item.cess));
+      const quantity =
+        numberValue(
+          item.quantity,
+        );
 
-    if (isIntraStateSupply && igst > 0 && cgst === 0 && sgst === 0) {
-      cgst = round(igst / 2);
-      sgst = round(igst / 2);
-      igst = 0;
-    } else if (!isIntraStateSupply && (cgst > 0 || sgst > 0) && igst === 0) {
-      igst = round(cgst + sgst);
-      cgst = 0;
-      sgst = 0;
-    }
+      const rate =
+        numberValue(item.rate);
 
-    const lineTotal = round(taxableAmount + cgst + sgst + igst + cess);
+      const itemSubtotal =
+        round(
+          quantity * rate,
+        );
 
-    // gstRate should be percentage, not amount
-    const gstRatePct =
-      taxableAmount > 0
-        ? round(((cgst + sgst + igst) / taxableAmount) * 100)
-        : 0;
+      // ====================================================
+      // DISCOUNT
+      // ====================================================
 
-    return {
-      id: item.id,
-      productId: text(item.productId) || undefined,
-      itemId: text(item.productId) || undefined,
-      itemName: text(item.productName),
-      product: text(item.productName),
-itemCode: text(item.itemCode) || text(item.productId) || "NA",      unit: text(item.unit) || "NOS",
-      hsnSacCode: text(item.hsnSacCode) || "NA",
-      
-     classification:
-    String(item.classification ?? "GOODS").toUpperCase() === "SERVICES"
-      ? "SERVICES"
-      : "GOODS",
+      const discountValue =
+        numberValue(
+          item.discountValue,
+        );
 
+      const discountType =
+        String(
+          item.discountType ??
+            "percentage",
+        )
+          .trim()
+          .toLowerCase();
 
-      quantity,
-      unitPrice: rate,
-      sellingPrice: rate,
-      discountType: String(item.discountType).toUpperCase(),
-      discountValue,
-      discountAmount: round(discountAmount),
-      gstRate: gstRatePct,
-      taxableAmount,
-      cgstAmount: cgst,
-      sgstAmount: sgst,
-      igstAmount: igst,
-      cessAmount: cess,
-      lineNumber: index + 1,
-      lineTotal,
-    };
-  });
+      const discountAmount =
+        discountType === "fixed"
+          ? Math.min(
+              discountValue,
+              itemSubtotal,
+            )
+          : Math.min(
+              round(
+                (itemSubtotal *
+                  discountValue) /
+                  100,
+              ),
+              itemSubtotal,
+            );
 
-  const subtotal = round(
-    items.reduce(
-      (sum, item) =>
-        sum + numberValue(item.quantity) * numberValue(item.unitPrice),
-      0,
-    ),
-  );
+      // ====================================================
+      // TAXABLE
+      // ====================================================
 
-  const discountAmount = round(
-    items.reduce((sum, item) => sum + numberValue(item.discountAmount), 0),
-  );
+      const taxableAmount =
+        round(
+          Math.max(
+            itemSubtotal -
+              discountAmount,
+            0,
+          ),
+        );
 
-  const taxableAmount = round(
-    items.reduce((sum, item) => sum + numberValue(item.taxableAmount), 0),
-  );
+      // ====================================================
+      // GST RATE
+      // ====================================================
+      //
+      // Read gstRate from the form.
+      //
+      // If your type does not yet contain gstRate,
+      // the fallback safely reads it dynamically.
+      // ====================================================
 
-  const cgstAmount = round(
-    items.reduce((sum, item) => sum + numberValue(item.cgstAmount), 0),
-  );
+      const rawItem =
+        item as unknown as Record<
+          string,
+          unknown
+        >;
 
-  const sgstAmount = round(
-    items.reduce((sum, item) => sum + numberValue(item.sgstAmount), 0),
-  );
+      const gstRate =
+        round(
+          numberValue(
+            rawItem.gstRate,
+          ),
+        );
 
-  const igstAmount = round(
-    items.reduce((sum, item) => sum + numberValue(item.igstAmount), 0),
-  );
+      // ====================================================
+      // CESS
+      // ====================================================
 
-  const cessAmount = round(
-    items.reduce((sum, item) => sum + numberValue(item.cessAmount), 0),
-  );
+      const cess =
+        round(
+          numberValue(
+            rawItem.cess,
+          ),
+        );
 
-  const calculatedTotal = round(
-    taxableAmount + cgstAmount + sgstAmount + igstAmount + cessAmount,
-  );
+      // ====================================================
+      // GST CALCULATION
+      // ====================================================
 
-  const roundOffAmount = round(numberValue(values.roundOffAmount));
-  const grandTotal = round(calculatedTotal + roundOffAmount);
-  const paidAmount = round(numberValue(values.paidAmount));
-  const pendingAmount = round(Math.max(grandTotal - paidAmount, 0));
+      let cgst = 0;
+      let sgst = 0;
+      let igst = 0;
 
-  const shippingAddress = values.sameAsBilling
-    ? {
-        shippingAddressLine1: text(values.billingAddressLine1),
-        shippingAddressLine2: text(values.billingAddressLine2),
-        shippingCity: text(values.billingCity),
-        shippingState: text(values.billingState),
-        shippingStateCode: billingStateCode,
-        shippingPincode: text(values.billingPincode),
-        shippingCountry: text(values.billingCountry),
+      if (
+        gstRate > 0 &&
+        taxableAmount > 0
+      ) {
+        const totalGST =
+          round(
+            (taxableAmount *
+              gstRate) /
+              100,
+          );
+
+        if (
+          isIntraStateSupply
+        ) {
+          // ================================================
+          // INTRA STATE
+          // CGST + SGST
+          // ================================================
+
+          cgst =
+            round(
+              totalGST / 2,
+            );
+
+          sgst =
+            round(
+              totalGST - cgst,
+            );
+        } else {
+          // ================================================
+          // INTER STATE
+          // IGST
+          // ================================================
+
+          igst =
+            totalGST;
+        }
       }
-    : {
-        shippingAddressLine1: text(values.shippingAddressLine1),
-        shippingAddressLine2: text(values.shippingAddressLine2),
-        shippingCity: text(values.shippingCity),
-        shippingState: text(values.shippingState),
-        shippingStateCode:
-          text(values.shippingStateCode) ||
-          getStateCode(values.shippingState),
-        shippingPincode: text(values.shippingPincode),
-        shippingCountry: text(values.shippingCountry),
+
+      // ====================================================
+      // LINE TOTAL
+      // ====================================================
+
+      const lineTotal =
+        round(
+          taxableAmount +
+            cgst +
+            sgst +
+            igst +
+            cess,
+        );
+
+      // ====================================================
+      // ITEM
+      // ====================================================
+
+      return {
+        id:
+          optionalText(
+            rawItem.id,
+          ),
+
+        productId:
+          optionalText(
+            rawItem.productId,
+          ),
+
+        itemId:
+          optionalText(
+            rawItem.productId ??
+              rawItem.itemId,
+          ),
+
+        itemName:
+          text(
+            rawItem.productName ??
+              rawItem.itemName ??
+              rawItem.product,
+          ),
+
+        product:
+          text(
+            rawItem.productName ??
+              rawItem.itemName ??
+              rawItem.product,
+          ),
+
+        itemCode:
+          text(
+            rawItem.itemCode,
+          ) ||
+          text(
+            rawItem.productId,
+          ) ||
+          "NA",
+
+        unit:
+          text(
+            rawItem.unit,
+          ) || "NOS",
+
+        hsnSacCode:
+          text(
+            rawItem.hsnSacCode,
+          ) || "NA",
+
+        classification:
+          String(
+            rawItem.classification ??
+              "GOODS",
+          ).toUpperCase() ===
+          "SERVICES"
+            ? "SERVICES"
+            : "GOODS",
+
+        quantity,
+
+        unitPrice:
+          rate,
+
+        sellingPrice:
+          rate,
+
+        discountType:
+          discountType ===
+          "fixed"
+            ? "FIXED"
+            : "PERCENTAGE",
+
+        discountValue,
+
+        discountAmount:
+          round(
+            discountAmount,
+          ),
+
+        gstRate,
+
+        taxableAmount,
+
+        cgstAmount:
+          cgst,
+
+        sgstAmount:
+          sgst,
+
+        igstAmount:
+          igst,
+
+        cessAmount:
+          cess,
+
+        lineNumber:
+          index + 1,
+
+        lineTotal,
+
+        description:
+          optionalText(
+            rawItem.description,
+          ),
       };
+    },
+  );
+
+  // ========================================================
+  // TOTALS
+  // ========================================================
+
+  const subtotal =
+    round(
+      items.reduce(
+        (sum, item) =>
+          sum +
+          numberValue(
+            item.quantity,
+          ) *
+            numberValue(
+              item.unitPrice,
+            ),
+        0,
+      ),
+    );
+
+  const discountAmount =
+    round(
+      items.reduce(
+        (sum, item) =>
+          sum +
+          numberValue(
+            item.discountAmount,
+          ),
+        0,
+      ),
+    );
+
+  const taxableAmount =
+    round(
+      items.reduce(
+        (sum, item) =>
+          sum +
+          numberValue(
+            item.taxableAmount,
+          ),
+        0,
+      ),
+    );
+
+  const cgstAmount =
+    round(
+      items.reduce(
+        (sum, item) =>
+          sum +
+          numberValue(
+            item.cgstAmount,
+          ),
+        0,
+      ),
+    );
+
+  const sgstAmount =
+    round(
+      items.reduce(
+        (sum, item) =>
+          sum +
+          numberValue(
+            item.sgstAmount,
+          ),
+        0,
+      ),
+    );
+
+  const igstAmount =
+    round(
+      items.reduce(
+        (sum, item) =>
+          sum +
+          numberValue(
+            item.igstAmount,
+          ),
+        0,
+      ),
+    );
+
+  const cessAmount =
+    round(
+      items.reduce(
+        (sum, item) =>
+          sum +
+          numberValue(
+            item.cessAmount,
+          ),
+        0,
+      ),
+    );
+
+  // ========================================================
+  // CALCULATED TOTAL
+  // ========================================================
+
+  const calculatedTotal =
+    round(
+      taxableAmount +
+        cgstAmount +
+        sgstAmount +
+        igstAmount +
+        cessAmount,
+    );
+
+  const roundOffAmount =
+    round(
+      numberValue(
+        values.roundOffAmount,
+      ),
+    );
+
+  const grandTotal =
+    round(
+      calculatedTotal +
+        roundOffAmount,
+    );
+
+  // ========================================================
+  // PAYMENT
+  // ========================================================
+
+  const paidAmount =
+    round(
+      numberValue(
+        values.paidAmount,
+      ),
+    );
+
+  const pendingAmount =
+    round(
+      Math.max(
+        grandTotal -
+          paidAmount,
+        0,
+      ),
+    );
+
+  // ========================================================
+  // SHIPPING
+  // ========================================================
+
+  const shippingAddress =
+    values.sameAsBilling
+      ? {
+          shippingAddressLine1:
+            text(
+              values.billingAddressLine1,
+            ),
+
+          shippingAddressLine2:
+            text(
+              values.billingAddressLine2,
+            ),
+
+          shippingCity:
+            text(
+              values.billingCity,
+            ),
+
+          shippingState:
+            text(
+              values.billingState,
+            ),
+
+          shippingStateCode:
+            billingStateCode,
+
+          shippingPincode:
+            text(
+              values.billingPincode,
+            ),
+
+          shippingCountry:
+            text(
+              values.billingCountry,
+            ),
+        }
+      : {
+          shippingAddressLine1:
+            text(
+              values.shippingAddressLine1,
+            ),
+
+          shippingAddressLine2:
+            text(
+              values.shippingAddressLine2,
+            ),
+
+          shippingCity:
+            text(
+              values.shippingCity,
+            ),
+
+          shippingState:
+            text(
+              values.shippingState,
+            ),
+
+          shippingStateCode:
+            text(
+              values.shippingStateCode,
+            ) ||
+            getStateCode(
+              values.shippingState,
+            ),
+
+          shippingPincode:
+            text(
+              values.shippingPincode,
+            ),
+
+          shippingCountry:
+            text(
+              values.shippingCountry,
+            ),
+        };
+
+  // ========================================================
+  // FINAL PAYLOAD
+  // ========================================================
 
   return {
-    businessId: text(values.businessId) || undefined,
-    branchId: text(values.branchId) || undefined,
-    createdBy: text(values.createdBy) || undefined,
+    // ======================================================
+    // CONTEXT
+    // ======================================================
 
-    invoiceNumber: text(values.invoiceNumber) || undefined,
-    invoiceDate: text(values.invoiceDate) || undefined,
-    dueDate: text(values.dueDate) || undefined,
-    financialYear: text(values.financialYear) || undefined,
-    invoiceType: text(values.invoiceType) || undefined,
-    invoiceStatus: text(values.invoiceStatus) || undefined,
-    invoiceSource: text(values.invoiceSource) || undefined,
-    referenceNumber: text(values.referenceNumber) || undefined,
+    businessId:
+      optionalText(
+        values.businessId,
+      ),
 
-    sellerLegalName: text(values.sellerLegalName) || undefined,
-    sellerTradeName: text(values.sellerTradeName) || undefined,
-    sellerGSTIN: text(values.sellerGSTIN) || undefined,
-    sellerPAN: text(values.sellerPAN) || undefined,
-    sellerPhone: text(values.sellerPhone) || undefined,
-    sellerEmail: text(values.sellerEmail) || undefined,
-    sellerAddressLine1: text(values.sellerAddressLine1) || undefined,
-    sellerAddressLine2: text(values.sellerAddressLine2) || undefined,
-    sellerCity: text(values.sellerCity) || undefined,
-    sellerState: text(values.sellerState) || undefined,
-    sellerStateCode: sellerStateCode || undefined,
-    sellerPincode: text(values.sellerPincode) || undefined,
-    sellerCountry: text(values.sellerCountry) || undefined,
+    branchId:
+      optionalText(
+        values.branchId,
+      ),
 
-    customerId: text(values.customerId) || undefined,
-    buyerName: text(values.buyerName) || undefined,
-    buyerCompanyName: text(values.buyerCompanyName) || undefined,
-    buyerGSTIN: text(values.buyerGSTIN) || undefined,
-    buyerPAN: text(values.buyerPAN) || undefined,
-    buyerPhone: text(values.buyerPhone) || undefined,
-    buyerEmail: text(values.buyerEmail) || undefined,
-    buyerType: text(values.buyerType) || undefined,
-    buyerContactPerson: text(values.buyerContactPerson) || undefined,
-    buyerRevCharge: text(values.buyerRevCharge) || undefined,
+    createdBy:
+      optionalText(
+        values.createdBy,
+      ),
 
-    billingAddressLine1: text(values.billingAddressLine1) || undefined,
-    billingAddressLine2: text(values.billingAddressLine2) || undefined,
-    billingCity: text(values.billingCity) || undefined,
-    billingState: text(values.billingState) || undefined,
-    billingStateCode: billingStateCode || undefined,
-    billingPincode: text(values.billingPincode) || undefined,
-    billingCountry: text(values.billingCountry) || undefined,
+    // ======================================================
+    // INVOICE
+    // ======================================================
+
+    invoiceNumber:
+      optionalText(
+        values.invoiceNumber,
+      ),
+
+    invoiceDate:
+      optionalText(
+        values.invoiceDate,
+      ),
+
+    dueDate:
+      optionalText(
+        values.dueDate,
+      ),
+
+   
+
+    invoiceType:
+      optionalText(
+        values.invoiceType,
+      ),
+
+    invoiceStatus:
+      optionalText(
+        values.invoiceStatus,
+      ),
+
+    invoiceSource:
+      optionalText(
+        values.invoiceSource,
+      ),
+
+    // ======================================================
+    // SELLER
+    // ======================================================
+
+    sellerLegalName:
+      optionalText(
+        values.sellerLegalName,
+      ),
+
+    sellerTradeName:
+      optionalText(
+        values.sellerTradeName,
+      ),
+
+    sellerGSTIN:
+      optionalText(
+        values.sellerGSTIN,
+      ),
+
+    sellerPAN:
+      optionalText(
+        values.sellerPAN,
+      ),
+
+    sellerPhone:
+      optionalText(
+        values.sellerPhone,
+      ),
+
+    sellerEmail:
+      optionalText(
+        values.sellerEmail,
+      ),
+
+    sellerAddressLine1:
+      optionalText(
+        values.sellerAddressLine1,
+      ),
+
+    sellerAddressLine2:
+      optionalText(
+        values.sellerAddressLine2,
+      ),
+
+    sellerCity:
+      optionalText(
+        values.sellerCity,
+      ),
+
+    sellerState:
+      optionalText(
+        values.sellerState,
+      ),
+
+    sellerStateCode:
+      optionalText(
+        sellerStateCode,
+      ),
+
+    sellerPincode:
+      optionalText(
+        values.sellerPincode,
+      ),
+
+    sellerCountry:
+      optionalText(
+        values.sellerCountry,
+      ),
+
+    // ======================================================
+    // BUYER
+    // ======================================================
+
+    customerId:
+      optionalText(
+        values.customerId,
+      ),
+
+    buyerName:
+      optionalText(
+        values.buyerName,
+      ),
+
+    buyerCompanyName:
+      optionalText(
+        values.buyerCompanyName,
+      ),
+
+    buyerGSTIN:
+      optionalText(
+        values.buyerGSTIN,
+      ),
+
+    buyerPAN:
+      optionalText(
+        values.buyerPAN,
+      ),
+
+    buyerPhone:
+      optionalText(
+        values.buyerPhone,
+      ),
+
+    buyerEmail:
+      optionalText(
+        values.buyerEmail,
+      ),
+
+    buyerType:
+      optionalText(
+        values.buyerType,
+      ),
+
+    buyerContactPerson:
+      optionalText(
+        values.buyerContactPerson,
+      ),
+
+    buyerRevCharge:
+      optionalText(
+        values.buyerRevCharge,
+      ),
+
+    // ======================================================
+    // BILLING
+    // ======================================================
+
+    billingAddressLine1:
+      optionalText(
+        values.billingAddressLine1,
+      ),
+
+    billingAddressLine2:
+      optionalText(
+        values.billingAddressLine2,
+      ),
+
+    billingCity:
+      optionalText(
+        values.billingCity,
+      ),
+
+    billingState:
+      optionalText(
+        values.billingState,
+      ),
+
+    billingStateCode:
+      optionalText(
+        billingStateCode,
+      ),
+
+    billingPincode:
+      optionalText(
+        values.billingPincode,
+      ),
+
+    billingCountry:
+      optionalText(
+        values.billingCountry,
+      ),
+
+    // ======================================================
+    // SHIPPING
+    // ======================================================
 
     ...shippingAddress,
-    sameAsBilling: Boolean(values.sameAsBilling),
 
-    placeOfSupply: text(values.placeOfSupply) || undefined,
-    placeOfSupplyCode: placeOfSupplyCode || undefined,
-    taxType: text(values.taxType) || undefined,
-    reverseCharge: Boolean(values.reverseCharge),
-    isExport: Boolean(values.isExport),
-    isSEZ: Boolean(values.isSEZ),
-    currency: text(values.currency) || undefined,
-    exchangeRate: numberValue(values.exchangeRate),
+    sameAsBilling:
+      Boolean(
+        values.sameAsBilling,
+      ),
+
+    // ======================================================
+    // TAX
+    // ======================================================
+
+    placeOfSupply:
+      optionalText(
+        values.placeOfSupply,
+      ),
+
+    placeOfSupplyCode:
+      optionalText(
+        placeOfSupplyCode,
+      ),
+
+    taxType:
+      optionalText(
+        values.taxType,
+      ),
+
+    reverseCharge:
+      Boolean(
+        values.reverseCharge,
+      ),
+
+    isExport:
+      Boolean(
+        values.isExport,
+      ),
+
+    isSEZ:
+      Boolean(
+        values.isSEZ,
+      ),
+
+    currency:
+      optionalText(
+        values.currency,
+      ),
+
+    exchangeRate:
+      numberValue(
+        values.exchangeRate,
+      ),
+
+    // ======================================================
+    // ITEMS
+    // ======================================================
 
     items,
-    totalItems: items.length,
-    totalQuantity: items.reduce(
-      (sum, item) => sum + numberValue(item.quantity),
-      0,
-    ),
+
+    totalItems:
+      items.length,
+
+    totalQuantity:
+      items.reduce(
+        (sum, item) =>
+          sum +
+          numberValue(
+            item.quantity,
+          ),
+        0,
+      ),
+
+    // ======================================================
+    // TOTALS
+    // ======================================================
+
     subtotal,
+
     discountAmount,
+
     taxableAmount,
+
     cgstAmount,
+
     sgstAmount,
+
     igstAmount,
+
     cessAmount,
+
     roundOffAmount,
+
     grandTotal,
 
-    paymentStatus: text(values.paymentStatus) || undefined,
-    paymentMethod: text(values.paymentMethod) || undefined,
+    // ======================================================
+    // PAYMENT
+    // ======================================================
+
+    paymentStatus:
+      optionalText(
+        values.paymentStatus,
+      ),
+
+    paymentMethod:
+      optionalText(
+        values.paymentMethod,
+      ),
+
     paidAmount,
+
     pendingAmount,
-    paymentDate: text(values.paymentDate) || undefined,
-    transactionId: text(values.transactionId) || undefined,
-    receivedAccount: text(values.receivedAccount) || undefined,
 
-    irn: text(values.irn) || undefined,
-    acknowledgementNumber: text(values.acknowledgementNumber) || undefined,
-    acknowledgementDate: text(values.acknowledgementDate) || undefined,
-    signedQRCode: text(values.signedQRCode) || undefined,
-    qrCodeImage: text(values.qrCodeImage) || undefined,
+    paymentDate:
+      optionalText(
+        values.paymentDate,
+      ),
 
-    notes: text(values.notes) || undefined,
-    termsAndConditions: text(values.termsAndConditions) || undefined,
+    transactionId:
+      optionalText(
+        values.transactionId,
+      ),
+
+    receivedAccount:
+      optionalText(
+        values.receivedAccount,
+      ),
+
+    // ======================================================
+    // E-INVOICE
+    // ======================================================
+
+    irn:
+      optionalText(
+        values.irn,
+      ),
+
+    acknowledgementNumber:
+      optionalText(
+        values.acknowledgementNumber,
+      ),
+
+    acknowledgementDate:
+      optionalText(
+        values.acknowledgementDate,
+      ),
+
+    signedQRCode:
+      optionalText(
+        values.signedQRCode,
+      ),
+
+    qrCodeImage:
+      optionalText(
+        values.qrCodeImage,
+      ),
+
+    // ======================================================
+    // ADDITIONAL
+    // ======================================================
+
+    notes:
+      optionalText(
+        values.notes,
+      ),
+
+    termsAndConditions:
+      optionalText(
+        values.termsAndConditions,
+      ),
   };
 }
 
 // ==========================================================
-// API response → Form values
+// API RESPONSE → FORM VALUES
 // ==========================================================
 
 export function toInvoiceFormValues(
   invoice: Record<string, unknown>,
 ): InvoiceFormValues {
-  const values: InvoiceFormValues = {
+  const values = {
     ...(DEFAULT_VALUES as InvoiceFormValues),
   };
 
-  const destination = values as unknown as Record<string, unknown>;
+  const destination =
+    values as unknown as Record<
+      string,
+      unknown
+    >;
 
-  for (const key of Object.keys(DEFAULT_VALUES) as Array<
+  // ========================================================
+  // NORMAL FIELDS
+  // ========================================================
+
+  for (const key of Object.keys(
+    DEFAULT_VALUES,
+  ) as Array<
     keyof InvoiceFormValues
   >) {
-    if (key === "items") continue;
+    if (key === "items") {
+      continue;
+    }
 
-    // grandTotal replaces the legacy "totalAmount" API field name; accept either.
     const value =
       key === "grandTotal"
-        ? (invoice.grandTotal ?? invoice.totalAmount)
+        ? invoice.grandTotal ??
+          invoice.totalAmount
         : invoice[key];
 
-    if (value !== null && value !== undefined) {
-      destination[key] = value;
+    if (
+      value !== null &&
+      value !== undefined
+    ) {
+      destination[key] =
+        value;
     }
   }
 
-const rawItems = Array.isArray(invoice.items) ? invoice.items : [];
+  // ========================================================
+  // ITEMS
+  // ========================================================
 
-values.items = rawItems.map((raw) => {
-  const item = raw as Record<string, unknown>;
+  const rawItems =
+    Array.isArray(
+      invoice.items,
+    )
+      ? invoice.items
+      : [];
 
-  return {
-    id: text(item.id) || undefined,
+  values.items =
+    rawItems.map(
+      (
+        raw,
+      ) => {
+        const item =
+          raw as Record<
+            string,
+            unknown
+          >;
 
-    productId: text(item.productId ?? item.itemId),
-    productName: text(item.itemName ?? item.product),
+        return {
+        
 
-    unit: text(item.unit) || "NOS",
-    hsnSacCode: text(item.hsnSacCode) || "NA",
+          productId:
+            text(
+              item.productId ??
+                item.itemId,
+            ),
 
-     classification:
-      String(item.classification ?? "GOODS").toUpperCase() === "SERVICES"
-        ? "SERVICES"
-        : "GOODS",
+          productName:
+            text(
+              item.itemName ??
+                item.product ??
+                item.productName,
+            ),
 
-    quantity: numberValue(item.quantity),
-    rate: numberValue(item.unitPrice ?? item.sellingPrice),
+          itemCode:
+            text(
+              item.itemCode ??
+                item.code ??
+                item.productId ??
+                item.itemId,
+            ) || "NA",
 
-    discountType:
-      String(item.discountType ?? "percentage").toLowerCase() === "fixed"
-        ? "fixed"
-        : "percentage",
+          unit:
+            text(item.unit) ||
+            "NOS",
 
-    discountValue: numberValue(item.discountValue),
+          hsnSacCode:
+            text(
+              item.hsnSacCode,
+            ) || "NA",
 
-    taxableAmount: numberValue(item.taxableAmount),
+          classification:
+            String(
+              item.classification ??
+                "GOODS",
+            ).toUpperCase() ===
+            "SERVICES"
+              ? "SERVICES"
+              : "GOODS",
 
-    cgst: numberValue(item.cgstAmount ?? item.cgst),
-    sgst: numberValue(item.sgstAmount ?? item.sgst),
-    igst: numberValue(item.igstAmount ?? item.igst),
-    cess: numberValue(item.cessAmount ?? item.cess),
+          quantity:
+            numberValue(
+              item.quantity,
+            ),
 
-    grandTotal: numberValue(
-      item.lineTotal ?? item.grandTotal ?? item.totalAmount,
-    ),
+          rate:
+            numberValue(
+              item.unitPrice ??
+                item.sellingPrice ??
+                item.rate,
+            ),
 
-    description: text(item.description) || undefined,
-  } satisfies InvoiceItemFormValues;
-});
+          // ==================================================
+          // GST RATE
+          // ==================================================
 
-return values;
+          gstRate:
+            numberValue(
+              item.gstRate,
+            ),
+
+          discountType:
+            String(
+              item.discountType ??
+                "percentage",
+            ).toLowerCase() ===
+            "fixed"
+              ? "fixed"
+              : "percentage",
+
+          discountValue:
+            numberValue(
+              item.discountValue,
+            ),
+
+          taxableAmount:
+            numberValue(
+              item.taxableAmount,
+            ),
+
+          cgst:
+            numberValue(
+              item.cgstAmount ??
+                item.cgst,
+            ),
+
+          sgst:
+            numberValue(
+              item.sgstAmount ??
+                item.sgst,
+            ),
+
+          igst:
+            numberValue(
+              item.igstAmount ??
+                item.igst,
+            ),
+
+          cess:
+            numberValue(
+              item.cessAmount ??
+                item.cess,
+            ),
+
+          grandTotal:
+            numberValue(
+              item.lineTotal ??
+                item.grandTotal ??
+                item.totalAmount,
+            ),
+
+          description:
+            text(
+              item.description,
+            ) || undefined,
+        } satisfies InvoiceItemFormValues;
+      },
+    );
+
+  return values;
 }
- 

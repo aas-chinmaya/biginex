@@ -1,23 +1,52 @@
-
-
 "use client";
 
 import { Controller, useFormContext, useWatch } from "react-hook-form";
-import { BadgeIndianRupee, CalendarDays, CreditCard, Hash, Landmark, Wallet } from "lucide-react";
+import {
+  BadgeIndianRupee,
+  CalendarDays,
+  CreditCard,
+  Hash,
+  Wallet,
+} from "lucide-react";
+
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { InvoiceFormValues } from "../../types/invoice-form";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
-const methods = ["Cash", "Bank Transfer", "UPI", "Credit Card", "Cheque"];
-const statuses = ["Pending", "Paid", "Partially Paid", "Overdue"];
-const accounts = ["HDFC Bank", "State Bank of India", "ICICI Bank"];
+import type { InvoiceFormValues } from "../../types/invoice-form.types";
+
+const methods = [
+  "Cash",
+  "Bank Transfer",
+  "UPI",
+  "Credit Card",
+  "Cheque",
+];
+
+const statuses = [
+  "Pending",
+  "Paid",
+  "Partially Paid",
+  "Overdue",
+];
 
 export default function InvoicePaymentCard() {
-  const { control, register, setValue } = useFormContext<InvoiceFormValues>();
-  const paymentMethod = useWatch({ control, name: "paymentMethod" });
-  const needsAccount = paymentMethod === "Bank Transfer" || paymentMethod === "Cheque";
-  const needsReference = paymentMethod && paymentMethod !== "Cash";
+  const { control, register } =
+    useFormContext<InvoiceFormValues>();
+
+  const paymentMethod = useWatch({
+    control,
+    name: "paymentMethod",
+  });
+
+  const showTransactionReference =
+    paymentMethod && paymentMethod !== "Cash";
 
   return (
     <section className="min-w-0">
@@ -25,10 +54,14 @@ export default function InvoicePaymentCard() {
         <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-emerald-50 text-emerald-600">
           <CreditCard className="size-4" />
         </span>
-        <h2 className="text-sm font-semibold text-gray-900">Payment details</h2>
+
+        <h2 className="text-sm font-semibold text-gray-900">
+          Payment details
+        </h2>
       </div>
 
       <div className="divide-y divide-gray-100">
+        {/* Payment Method */}
         <Row label="Payment method">
           <Controller
             control={control}
@@ -36,17 +69,18 @@ export default function InvoicePaymentCard() {
             render={({ field }) => (
               <Select
                 value={field.value || undefined}
-                onValueChange={(value) => {
-                  field.onChange(value);
-                  if (value !== "Bank Transfer" && value !== "Cheque") setValue("receivedAccount", "");
-                }}
+                onValueChange={field.onChange}
               >
                 <IconSelectTrigger icon={Wallet}>
                   <SelectValue placeholder="Select method" />
                 </IconSelectTrigger>
+
                 <SelectContent>
                   {methods.map((method) => (
-                    <SelectItem key={method} value={method}>
+                    <SelectItem
+                      key={method}
+                      value={method}
+                    >
                       {method}
                     </SelectItem>
                   ))}
@@ -56,18 +90,26 @@ export default function InvoicePaymentCard() {
           />
         </Row>
 
+        {/* Payment Status */}
         <Row label="Payment status">
           <Controller
             control={control}
             name="paymentStatus"
             render={({ field }) => (
-              <Select value={field.value || "Pending"} onValueChange={field.onChange}>
+              <Select
+                value={field.value || "Pending"}
+                onValueChange={field.onChange}
+              >
                 <IconSelectTrigger icon={BadgeIndianRupee}>
                   <SelectValue />
                 </IconSelectTrigger>
+
                 <SelectContent>
                   {statuses.map((status) => (
-                    <SelectItem key={status} value={status}>
+                    <SelectItem
+                      key={status}
+                      value={status}
+                    >
                       {status}
                     </SelectItem>
                   ))}
@@ -77,16 +119,24 @@ export default function InvoicePaymentCard() {
           />
         </Row>
 
+        {/* Payment Date */}
         <Row label="Payment date">
           <div className="relative">
             <CalendarDays className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-            <Input type="date" className="pl-9" {...register("paymentDate")} />
+
+            <Input
+              type="date"
+              className="pl-9"
+              {...register("paymentDate")}
+            />
           </div>
         </Row>
 
+        {/* Paid Amount */}
         <Row label="Paid amount">
           <div className="relative">
             <BadgeIndianRupee className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+
             <Input
               type="number"
               min="0"
@@ -99,35 +149,18 @@ export default function InvoicePaymentCard() {
           </div>
         </Row>
 
-        {needsReference && (
-          <Row label={paymentMethod === "Cheque" ? "Cheque number" : "Transaction reference"}>
+        {/* Transaction Reference */}
+        {showTransactionReference && (
+          <Row label="Transaction reference">
             <div className="relative">
               <Hash className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-              <Input placeholder="Reference number" className="pl-9" {...register("transactionId")} />
-            </div>
-          </Row>
-        )}
 
-        {needsAccount && (
-          <Row label="Received account">
-            <Controller
-              control={control}
-              name="receivedAccount"
-              render={({ field }) => (
-                <Select value={field.value || undefined} onValueChange={field.onChange}>
-                  <IconSelectTrigger icon={Landmark}>
-                    <SelectValue placeholder="Select bank account" />
-                  </IconSelectTrigger>
-                  <SelectContent>
-                    {accounts.map((account) => (
-                      <SelectItem key={account} value={account}>
-                        {account}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+              <Input
+                placeholder="Enter transaction reference"
+                className="pl-9"
+                {...register("transactionId")}
+              />
+            </div>
           </Row>
         )}
       </div>
@@ -145,17 +178,30 @@ function IconSelectTrigger({
   return (
     <div className="relative min-w-0">
       <Icon className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground" />
-      <SelectTrigger className="pl-9">{children}</SelectTrigger>
+
+      <SelectTrigger className="pl-9">
+        {children}
+      </SelectTrigger>
     </div>
   );
 }
 
-function Row({ label, children }: { label: string; children: React.ReactNode }) {
+function Row({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="grid min-w-0 grid-cols-1 items-start gap-1.5 py-3 sm:grid-cols-[150px_1fr] sm:gap-4">
-      <Label className="text-xs font-medium text-muted-foreground sm:pt-2.5">{label}</Label>
-      <div className="min-w-0">{children}</div>
+      <Label className="text-xs font-medium text-muted-foreground sm:pt-2.5">
+        {label}
+      </Label>
+
+      <div className="min-w-0">
+        {children}
+      </div>
     </div>
   );
 }
-

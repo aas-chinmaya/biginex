@@ -1,9 +1,17 @@
 
 
 
+
+
+
+
+
+
+
+
+
 import type {
   DiscountType,
-  
   InvoiceStatus,
   InvoiceType,
   PaymentStatus,
@@ -18,11 +26,14 @@ export interface InvoiceItemFormValues {
 
   productId: string;
   productName: string;
+
   itemCode: string;
 
   unit: string;
   hsnSacCode: string;
-classification: "GOODS" | "SERVICES";
+
+  classification: "GOODS" | "SERVICES";
+
   quantity: number;
   rate: number;
 
@@ -51,9 +62,11 @@ export interface InvoiceFormValues {
   // -------------------------------------------------------
 
   invoiceType: InvoiceType;
+
   invoiceNumber: string;
   invoiceDate: string;
   dueDate: string;
+
   financialYear: string;
 
   invoiceStatus: InvoiceStatus;
@@ -62,7 +75,6 @@ export interface InvoiceFormValues {
   branchId: string;
   branch: string;
 
-  referenceNumber: string;
 
   // -------------------------------------------------------
   // Customer
@@ -122,7 +134,6 @@ export interface InvoiceFormValues {
   taxType: string;
 
   reverseCharge: boolean;
-
   isExport: boolean;
   isSEZ: boolean;
 
@@ -167,7 +178,6 @@ export interface InvoiceFormValues {
   pendingAmount: number;
 
   paymentDate: string;
-
   transactionId: string;
   receivedAccount: string;
 
@@ -216,5 +226,5 @@ export interface InvoiceFormValues {
   // -------------------------------------------------------
 
   businessId: string;
-  createdBy?: string;
+  createdBy: string;
 }

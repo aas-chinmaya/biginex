@@ -98,12 +98,7 @@ export default function InvoiceDocument({
                 value={formatDate(inv.invoiceDate)}
               />
 
-              {inv.referenceNumber && (
-                <InvoiceHeaderRow
-                  label="Ref"
-                  value={inv.referenceNumber}
-                />
-              )}
+             
             </div>
           </div>
         </div>

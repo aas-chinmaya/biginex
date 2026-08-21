@@ -46,8 +46,8 @@ export default function InvoiceFilters({
             </SelectItem>
           ) : (
             <>
-              <SelectItem value="PENDING">
-                Pending
+              <SelectItem value="ISSUED">
+                Issued
               </SelectItem>
 
               <SelectItem value="PAID">

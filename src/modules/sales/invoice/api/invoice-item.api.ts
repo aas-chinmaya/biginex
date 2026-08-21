@@ -1,11 +1,21 @@
-
-
 import api from "@/services/api";
-import type { InvoiceItem } from "../types/invoice-item";
 
 const INVOICE_ITEM_ENDPOINTS = {
   GET_ITEMS: "/invoice-items",
 } as const;
+
+/** Inline shape — no external types file */
+interface InvoiceItem {
+  id: string;
+  name: string;
+  itemCode: string;
+  classification: "GOODS" | "SERVICES";
+  unit: string;
+  hsnSacCode: string;
+  salePrice: number;
+  gstRate: number;
+  description?: string;
+}
 
 export const invoiceItemApi = {
   getItems(search?: string) {

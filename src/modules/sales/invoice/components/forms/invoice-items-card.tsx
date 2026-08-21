@@ -179,9 +179,7 @@ const selectProduct = (index: number, productId: string) => {
         </span>
         <div className="min-w-0">
           <h2 className="text-sm font-semibold text-gray-900">Invoice items</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Add products or services, then set the quantity and discount for each line.
-          </p>
+          
         </div>
       </div>
 
@@ -307,7 +305,7 @@ const selectProduct = (index: number, productId: string) => {
 
                   <td className="p-3 text-right font-medium">Rs. {total.total.toFixed(2)}</td>
 
-                  <td className="p-2">
+                  {/* <td className="p-2">
                     <div className="flex items-center gap-1">
                       <Button
                         type="button"
@@ -332,7 +330,32 @@ const selectProduct = (index: number, productId: string) => {
                         <Minus className="size-4" />
                       </Button>
                     </div>
-                  </td>
+                  </td> */}
+<td className="p-2">
+  <div className="flex items-center justify-center gap-1.5">
+    <Button
+      type="button"
+      variant="primary"
+      size="icon"
+      aria-label="Add invoice item"
+      title="Add item"
+      onClick={() => append(newLineItem())}
+    >
+      <Plus className="size-4" />
+    </Button>
+
+    <Button
+      type="button"
+      variant="outline"
+      size="icon"
+      aria-label="Remove invoice item"
+      title="Remove item"
+      onClick={() => removeLine(index)}
+    >
+      <Minus className="size-4" />
+    </Button>
+  </div>
+</td>
                 </tr>
               );
             })}

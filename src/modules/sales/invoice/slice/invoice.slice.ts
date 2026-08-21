@@ -167,7 +167,7 @@ export const fetchDraftById = createAsyncThunk<
         await invoiceService.getDraftById(id);
 
       return getResponseData<InvoiceFormValues>(
-        response,
+        response.data,
       );
     } catch (error) {
       return rejectWithValue(

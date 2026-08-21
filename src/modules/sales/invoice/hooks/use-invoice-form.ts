@@ -1,17 +1,19 @@
 
 
 
+
 "use client";
 
 import { useEffect } from "react";
-import {
-  useForm,
-  type DefaultValues,
-} from "react-hook-form";
+import { useForm, type DefaultValues } from "react-hook-form";
 
 import type { InvoiceFormValues } from "../types/invoice-form.types";
 
 export const DEFAULT_VALUES: DefaultValues<InvoiceFormValues> = {
+  // ========================================================
+  // Invoice
+  // ========================================================
+
   invoiceType: "B2B",
 
   invoiceNumber: "",
@@ -26,7 +28,10 @@ export const DEFAULT_VALUES: DefaultValues<InvoiceFormValues> = {
   branchId: "",
   branch: "",
 
-  referenceNumber: "",
+
+  // ========================================================
+  // Customer
+  // ========================================================
 
   customerId: "",
 
@@ -44,6 +49,10 @@ export const DEFAULT_VALUES: DefaultValues<InvoiceFormValues> = {
 
   buyerRevCharge: "",
 
+  // ========================================================
+  // Billing
+  // ========================================================
+
   billingAddressLine1: "",
   billingAddressLine2: "",
 
@@ -52,6 +61,10 @@ export const DEFAULT_VALUES: DefaultValues<InvoiceFormValues> = {
   billingStateCode: "",
   billingPincode: "",
   billingCountry: "India",
+
+  // ========================================================
+  // Shipping
+  // ========================================================
 
   sameAsBilling: true,
 
@@ -63,6 +76,10 @@ export const DEFAULT_VALUES: DefaultValues<InvoiceFormValues> = {
   shippingStateCode: "",
   shippingPincode: "",
   shippingCountry: "India",
+
+  // ========================================================
+  // Tax
+  // ========================================================
 
   placeOfSupply: "",
   placeOfSupplyCode: "",
@@ -78,7 +95,15 @@ export const DEFAULT_VALUES: DefaultValues<InvoiceFormValues> = {
 
   discountType: "percentage",
 
+  // ========================================================
+  // Items
+  // ========================================================
+
   items: [],
+
+  // ========================================================
+  // Totals
+  // ========================================================
 
   totalItems: 0,
   totalQuantity: 0,
@@ -95,6 +120,10 @@ export const DEFAULT_VALUES: DefaultValues<InvoiceFormValues> = {
   roundOffAmount: 0,
   grandTotal: 0,
 
+  // ========================================================
+  // Payment
+  // ========================================================
+
   paymentStatus: "Pending",
   paymentMethod: "Cash",
 
@@ -105,6 +134,10 @@ export const DEFAULT_VALUES: DefaultValues<InvoiceFormValues> = {
   transactionId: "",
   receivedAccount: "",
 
+  // ========================================================
+  // E-Invoice
+  // ========================================================
+
   irn: "",
   acknowledgementNumber: "",
   acknowledgementDate: "",
@@ -112,11 +145,18 @@ export const DEFAULT_VALUES: DefaultValues<InvoiceFormValues> = {
   signedQRCode: "",
   qrCodeImage: "",
 
-  notes:
-    "Thank you for your business and continued support.",
+  // ========================================================
+  // Additional
+  // ========================================================
+
+  notes: "",
 
   termsAndConditions:
     "Payment is due as per the agreed payment terms. All applicable taxes are included as stated. Goods and services once sold are subject to the agreed terms and conditions.",
+
+  // ========================================================
+  // Seller
+  // ========================================================
 
   sellerLegalName: "",
   sellerTradeName: "",
@@ -136,7 +176,12 @@ export const DEFAULT_VALUES: DefaultValues<InvoiceFormValues> = {
   sellerPincode: "",
   sellerCountry: "India",
 
+  // ========================================================
+  // Context
+  // ========================================================
+
   businessId: "",
+  createdBy: "",
 };
 
 export function useInvoiceForm(
@@ -144,12 +189,18 @@ export function useInvoiceForm(
 ) {
   const form = useForm<InvoiceFormValues>({
     defaultValues: DEFAULT_VALUES,
+    mode: "onSubmit",
+    reValidateMode: "onChange",
   });
 
   useEffect(() => {
-    if (initialValues) {
-      form.reset(initialValues);
-    }
+    if (!initialValues) return;
+
+    form.reset({
+      ...DEFAULT_VALUES,
+      ...initialValues,
+      items: initialValues.items ?? [],
+    });
   }, [initialValues, form]);
 
   return form;
